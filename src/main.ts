@@ -4,8 +4,6 @@ import { addBackground } from './addBackground';
 // Create a Pixi Application
 const app = new Application();
 
-document.body.appendChild(app.canvas);
-
 const setup = async () => {
 
     // Intialize the application.
@@ -23,7 +21,7 @@ const setup = async () => {
 const preload = async () => {
 
     // Load the assets
-    await Assets.load([{ alias: 'background', url: 'assets/background.png' }, { alias: 'witcher', url: 'assets/witcher.png' }]);
+    await Assets.load([{ alias: 'background', src: '/assets/background.png' }, { alias: 'witcher', src: '/assets/witcher.png' }]);
 }
 
 (async () => {
