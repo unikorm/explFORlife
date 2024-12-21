@@ -10,7 +10,7 @@ const setup = async () => {
     await app.init({
         width: window.innerWidth,
         height: window.innerHeight,
-        backgroundColor: 0x1099bb,
+        backgroundColor: 0x99BB10,
         resizeTo: window
     })
 
