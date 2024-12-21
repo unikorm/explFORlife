@@ -4,6 +4,13 @@ const activeKeys = new Set();
 buttons.forEach(button => {
     const direction = button.id;
 
+    // Prevent context menu (long press menu)
+    button.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    });
+
     // Handle mouse events
     button.addEventListener('mousedown', (event) => {
         event.preventDefault();
@@ -36,6 +43,12 @@ buttons.forEach(button => {
         sendControlState();
     });
 })
+
+document.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+});
 
 const sendControlState = () => {
 

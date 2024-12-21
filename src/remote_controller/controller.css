@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    padding: 20px;
+    padding: 1.3rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -10,22 +10,41 @@ body {
 .controls {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 20px;
+    gap: .7rem;
+    margin-top: 1rem;
 }
 
 .control-btn {
-    width: 80px;
-    height: 80px;
-    border: none;
-    border-radius: 50%;
-    background: #4CAF50;
-    color: white;
-    font-size: 24px;
+    width: 100%;
+    height: 6.5rem;
+    margin: 0;
+    padding: 0;
+    border: solid 5px #45a049;
+    border-radius: 25px;
+    background: #e7eae7;
     touch-action: none;
     user-select: none;
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Safari */
+    -khtml-user-select: none;
+    /* Konqueror HTML */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+    user-select: none;
+    /* Non-prefixed version */
+    touch-action: manipulation;
+    /* Prevents zoom on double tap */
+}
+
+img {
+    width: 80%;
+    height: 80%;
 }
 
 .control-btn:active {
-    background: #45a049;
+    background: #8ed692;
 }
