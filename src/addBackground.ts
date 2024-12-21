@@ -5,7 +5,7 @@ export const addBackground = (app: Application) => {
     // Create a background sprite.
     const background = Sprite.from('background');
 
-    // Function to resize background
+    // resize background
     const resizeBackground = () => {
         // Get window dimensions
         const screenWidth = app.screen.width;
