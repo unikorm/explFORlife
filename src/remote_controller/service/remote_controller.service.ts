@@ -1,6 +1,6 @@
 import { ControlState } from "../remote_controller";
 
-class RemoteControllerConnection {
+export class RemoteControllerConnection {
     // these are our three main communication tools
     private peerConnection: RTCPeerConnection;  // direct connection to the game
     private dataChannel: RTCDataChannel | null = null;  // channel for sending control data
@@ -9,7 +9,7 @@ class RemoteControllerConnection {
     constructor() {
 
         // connect to the same signaling server as the game
-        this.ws = new WebSocket('ws://localhost:8080');
+        this.ws = new WebSocket('ws://192.168.1.160:8080');
 
         // set up our peer connection with the same STUN server
         this.peerConnection = new RTCPeerConnection({

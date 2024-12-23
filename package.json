@@ -3,15 +3,18 @@
     "version": "0.6.9",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "start:server": "nodemon --exec ts-node src/server/server.ts"
     },
     "devDependencies": {
+        "nodemon": "^3.1.9",
         "typescript": "~5.5.2",
         "vite": "^6.0.5"
     },
     "dependencies": {
         "@types/ws": "^8.5.13",
         "pixi.js": "8.6.4",
+        "ts-node": "^10.9.2",
         "ws": "^8.18.0"
     }
 }

@@ -1,3 +1,5 @@
+import { RemoteControllerConnection } from "./service/remote_controller.service";
+
 const remoteConnection = new RemoteControllerConnection();
 
 export type ControlState = {
