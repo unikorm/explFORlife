@@ -1,7 +1,14 @@
 import { WebSocketServer } from "ws";
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({
+    port: 8000,
+    host: '0.0.0.0'
+});
 const connections = new Map();
+
+wss.on('listening', () => {
+    console.log('WebSocket server is listening on port 8000');
+});
 
 wss.on("connection", (ws) => {
     console.log('New client connected');
@@ -28,6 +35,10 @@ wss.on("connection", (ws) => {
 
         }
     })
+
+    wss.on('error', (error) => {
+        console.error('WebSocket server error:', error);
+    });
 
     ws.on("close", () => {
         // remove disconnected client

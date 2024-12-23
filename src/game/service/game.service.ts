@@ -8,51 +8,84 @@ export class GameConnection {
     private remoteController: Controller | null = null;
 
     constructor(existingController: Controller) {
-        this.remoteController = existingController;
-        // connect to our signaling server
-        this.ws = new WebSocket('ws://192.168.1.160:8080');
+        console.log('Initializing GameConnection...');
 
-        // create the RTCPeerConnection with STUN server configuration
+        this.remoteController = existingController;
+        this.ws = new WebSocket('ws://localhost:8000');
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket connection error:', error);
+        };
+
         this.peerConnection = new RTCPeerConnection({
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' }
-            ]
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
         })
+
+        // Log connection state changes
+        this.peerConnection.onconnectionstatechange = () => {
+            console.log('WebRTC Connection State:', this.peerConnection.connectionState);
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE Connection State:', this.peerConnection.iceConnectionState);
+        };
 
         this.setupWebSocket();
         this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
-        // when we first connect to the signaling server
         this.ws.onopen = () => {
-            // tell the server "I'm the game"
+            console.log('WebSocket connected, registering as game...');
             this.ws.send(JSON.stringify({ type: 'register', role: 'game' }))
 
-            // start the connection process
             this.createOffer();
+
+            this.ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received WebSocket message:', data.type);
+
+                if (data.type === 'answer') {
+                    console.log('Received answer from controller');
+                    try {
+                        await this.peerConnection.setRemoteDescription(data.answer);
+                        console.log('Successfully set remote description from answer');
+                    } catch (error) {
+                        console.error('Error setting remote description:', error);
+                    }
+                } else if (data.type === 'ice-candidate') {
+                    console.log('Received ICE candidate from controller');
+                    try {
+                        await this.peerConnection.addIceCandidate(data.candidate);
+                        console.log('Successfully added ICE candidate');
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                }
+            }
         }
     }
 
     private setupPeerConnection = () => {
-        // create a channel specifically for control data
         this.dataChannel = this.peerConnection.createDataChannel('controls');
 
-        // what to do when we receive control messages
         this.dataChannel.onmessage = (event) => {
-            // parse the incoming control data
             const controlData: ControlState = JSON.parse(event.data);
 
-            // update the existing controller's state
             if (this.remoteController && controlData.type === 'controlUpdate') {
                 this.remoteController.updateFromRemote(controlData.activeControls);
             }
         }
 
-        // handle new connection paths as we discover them
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                // send any new connection paths to the controller
                 this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
 
             }
@@ -60,13 +93,20 @@ export class GameConnection {
     }
 
     private createOffer = async () => {
-        // create the connection offer
-        const offer = await this.peerConnection.createOffer();
+        console.log('Creating offer...');
+        try {
+            const offer = await this.peerConnection.createOffer();
+            console.log('Setting local description...');
+            await this.peerConnection.setLocalDescription(offer);
 
-        // save it as our local description
-        await this.peerConnection.setLocalDescription(offer);
-
-        // send the offer to the controller through the signaling server
-        this.ws.send(JSON.stringify({ type: 'offer', target: 'controller', offer }));
+            console.log('Sending offer to controller...');
+            this.ws.send(JSON.stringify({
+                type: 'offer',
+                target: 'controller',
+                offer
+            }));
+        } catch (error) {
+            console.error('Error creating offer:', error);
+        }
     }
 }

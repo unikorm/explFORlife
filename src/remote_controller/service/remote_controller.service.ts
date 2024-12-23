@@ -1,47 +1,68 @@
 import { ControlState } from "../remote_controller";
 
 export class RemoteControllerConnection {
-    // these are our three main communication tools
-    private peerConnection: RTCPeerConnection;  // direct connection to the game
-    private dataChannel: RTCDataChannel | null = null;  // channel for sending control data
-    private ws: WebSocket;  // initial connection to the signaling server
+    private peerConnection: RTCPeerConnection;
+    private dataChannel: RTCDataChannel | null = null;
+    private ws: WebSocket;
 
     constructor() {
+        console.log('Initializing RemoteControllerConnection...');
 
-        // connect to the same signaling server as the game
-        this.ws = new WebSocket('ws://192.168.1.160:8080');
+        this.ws = new WebSocket('ws://localhost:8000');
 
-        // set up our peer connection with the same STUN server
+        this.ws.onerror = (error) => {
+            console.error('WebSocket connection error:', error);
+        };
+
         this.peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
         });
 
-        // initialize both our connections
+        // Log connection state changes
+        this.peerConnection.onconnectionstatechange = () => {
+            console.log('WebRTC Connection State:', this.peerConnection.connectionState);
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE Connection State:', this.peerConnection.iceConnectionState);
+        };
+
         this.setupWebSocket();
         this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
 
-        // when we first connect to the signaling server
         this.ws.onopen = () => {
-            // announce ourselves as the controller
+            console.log('WebSocket connected, registering as controller...');
             this.ws.send(JSON.stringify({ type: 'register', role: 'controller' }));
         }
 
-        // handle incoming messages from the signaling server
         this.ws.onmessage = async (event) => {
             const data = JSON.parse(event.data);
+            console.log('Received WebSocket message:', data);
 
             switch (data.type) {
                 case 'offer':
-                    // game is trying to connect - handle their offer
+                    console.log('Received offer from game, processing...');
                     await this.handleOffer(data.offer);
                     break;
 
                 case 'ice-candidate':
-                    // game suggested a connection path
-                    this.peerConnection.addIceCandidate(data.candidate);
+                    console.log('Received ICE candidate from game');
+                    try {
+                        await this.peerConnection.addIceCandidate(data.candidate);
+                        console.log('Successfully added ICE candidate');
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
                     break;
             }
         }
@@ -49,17 +70,13 @@ export class RemoteControllerConnection {
 
     private setupPeerConnection = () => {
 
-        // wait for the game to create the data channel
         this.peerConnection.ondatachannel = (event) => {
 
-            // store the channel when we receive it
             this.dataChannel = event.channel;
 
-            // when the channel is open, set up our global send function
             this.dataChannel.onopen = () => {
                 console.log('WebRTC connection established, controller ready to send');
 
-                // create the global function that sendControlState will use
                 window.webRTCSendControl = (controlState: ControlState) => {
                     if (this.dataChannel && this.dataChannel.readyState === 'open') {
                         try {
@@ -71,15 +88,12 @@ export class RemoteControllerConnection {
                 }
             }
 
-            // handle any errors
             this.dataChannel.onerror = (error) => {
                 console.error('Data channel error:', error);
             };
 
-            // handle channel closing
             this.dataChannel.onclose = () => {
                 console.log('Data channel closed');
-                // remove the send function when connection is lost
                 window.webRTCSendControl = () => {
                     console.log('Connection lost, cannot send controls');
                 };
@@ -87,26 +101,20 @@ export class RemoteControllerConnection {
 
         }
 
-        // handle our own ICE candidates (possible connection paths)
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                // send our connection paths to the game
                 this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
             }
         }
     }
 
     private handleOffer = async (offer: RTCSessionDescriptionInit) => {
-        // save the game's connection details
         await this.peerConnection.setRemoteDescription(offer);
 
-        // create an answer to the game's offer
         const answer = await this.peerConnection.createAnswer();
 
-        // set the answer as our local description
         await this.peerConnection.setLocalDescription(answer);
 
-        // send the answer back to the game
         this.ws.send(JSON.stringify({ type: 'answer', target: 'game', answer }));
     }
 }
