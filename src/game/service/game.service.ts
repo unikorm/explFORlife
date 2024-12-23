@@ -38,7 +38,7 @@ export class GameConnection {
         };
 
         this.setupWebSocket();
-        this.setupPeerConnection();
+        // this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
@@ -73,24 +73,24 @@ export class GameConnection {
         }
     }
 
-    private setupPeerConnection = () => {
-        this.dataChannel = this.peerConnection.createDataChannel('controls');
+    // private setupPeerConnection = () => {
+    //     this.dataChannel = this.peerConnection.createDataChannel('controls');
 
-        this.dataChannel.onmessage = (event) => {
-            const controlData: ControlState = JSON.parse(event.data);
+    //     this.dataChannel.onmessage = (event) => {
+    //         const controlData: ControlState = JSON.parse(event.data);
 
-            if (this.remoteController && controlData.type === 'controlUpdate') {
-                this.remoteController.updateFromRemote(controlData.activeControls);
-            }
-        }
+    //         if (this.remoteController && controlData.type === 'controlUpdate') {
+    //             this.remoteController.updateFromRemote(controlData.activeControls);
+    //         }
+    //     }
 
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
+    //     this.peerConnection.onicecandidate = (event) => {
+    //         if (event.candidate) {
+    //             this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
 
     private createOffer = async () => {
         console.log('Creating offer...');

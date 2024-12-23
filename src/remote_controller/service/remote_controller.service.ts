@@ -35,7 +35,7 @@ export class RemoteControllerConnection {
         };
 
         this.setupWebSocket();
-        this.setupPeerConnection();
+        // this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
@@ -68,45 +68,45 @@ export class RemoteControllerConnection {
         }
     }
 
-    private setupPeerConnection = () => {
+    // private setupPeerConnection = () => {
 
-        this.peerConnection.ondatachannel = (event) => {
+    //     this.peerConnection.ondatachannel = (event) => {
 
-            this.dataChannel = event.channel;
+    //         this.dataChannel = event.channel;
 
-            this.dataChannel.onopen = () => {
-                console.log('WebRTC connection established, controller ready to send');
+    //         this.dataChannel.onopen = () => {
+    //             console.log('WebRTC connection established, controller ready to send');
 
-                window.webRTCSendControl = (controlState: ControlState) => {
-                    if (this.dataChannel && this.dataChannel.readyState === 'open') {
-                        try {
-                            this.dataChannel.send(JSON.stringify(controlState));
-                        } catch (error) {
-                            console.error('Error sending control state:', error);
-                        }
-                    }
-                }
-            }
+    //             window.webRTCSendControl = (controlState: ControlState) => {
+    //                 if (this.dataChannel && this.dataChannel.readyState === 'open') {
+    //                     try {
+    //                         this.dataChannel.send(JSON.stringify(controlState));
+    //                     } catch (error) {
+    //                         console.error('Error sending control state:', error);
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-            this.dataChannel.onerror = (error) => {
-                console.error('Data channel error:', error);
-            };
+    //         this.dataChannel.onerror = (error) => {
+    //             console.error('Data channel error:', error);
+    //         };
 
-            this.dataChannel.onclose = () => {
-                console.log('Data channel closed');
-                window.webRTCSendControl = () => {
-                    console.log('Connection lost, cannot send controls');
-                };
-            };
+    //         this.dataChannel.onclose = () => {
+    //             console.log('Data channel closed');
+    //             window.webRTCSendControl = () => {
+    //                 console.log('Connection lost, cannot send controls');
+    //             };
+    //         };
 
-        }
+    //     }
 
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
-            }
-        }
-    }
+    //     this.peerConnection.onicecandidate = (event) => {
+    //         if (event.candidate) {
+    //             this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
+    //         }
+    //     }
+    // }
 
     private handleOffer = async (offer: RTCSessionDescriptionInit) => {
         await this.peerConnection.setRemoteDescription(offer);
