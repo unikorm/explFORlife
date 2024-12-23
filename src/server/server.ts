@@ -15,11 +15,18 @@ wss.on('listening', () => {
 });
 
 // on connection event, new client connected (every client has own ws object)
-wss.on("connection", (ws) => {
+wss.on("connection", (ws, request) => {
+
+    const clientIP = request.socket.remoteAddress;
+    console.log(`\nNew client connected: ${clientIP}`);
 
     // on message event, client send message
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
+        console.log('\nReceived message:');
+        console.log('Type:', data.type);
+        console.log('From:', data.role || 'unknown');
+        console.log('Content:', data);
 
         switch (data.type) {
             case 'register':
@@ -48,8 +55,10 @@ wss.on("connection", (ws) => {
 
     // on close event, client disconnected
     ws.on("close", () => {
+        console.log(`\nClient disconnected: ${clientIP}`);
         connections.forEach((value, key) => {
             if (value === ws) connections.delete(key);
         })
+        console.log('Remaining connections:', Array.from(connections.keys()));
     })
 })
