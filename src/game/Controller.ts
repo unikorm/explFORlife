@@ -1,5 +1,6 @@
 export class Controller {
     private keys: { [key: string]: boolean } = {};
+    private remoteKeys: string[] = [];
 
     constructor() {
 
@@ -15,19 +16,24 @@ export class Controller {
         });
     }
 
+    // method to update from remote controller
+    updateFromRemote(activeKeys: string[]) {
+        this.remoteKeys = activeKeys;
+    }
+
     isMovingRight = (): boolean => {
-        return this.keys['d'] || this.keys['arrowright'];
+        return this.keys['d'] || this.keys['arrowright'] || this.remoteKeys.includes('right');
     }
 
     isMovingLeft = (): boolean => {
-        return this.keys['a'] || this.keys['arrowleft'];
+        return this.keys['a'] || this.keys['arrowleft'] || this.remoteKeys.includes('left');
     }
 
     isMovingUp = (): boolean => {
-        return this.keys['w'] || this.keys['arrowup'];
+        return this.keys['w'] || this.keys['arrowup'] || this.remoteKeys.includes('up');
     }
 
     isMovingDown = (): boolean => {
-        return this.keys['s'] || this.keys['arrowdown'];
+        return this.keys['s'] || this.keys['arrowdown'] || this.remoteKeys.includes('down');
     }
 }

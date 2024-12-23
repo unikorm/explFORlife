@@ -2,6 +2,7 @@ import { Application, Assets, Sprite } from 'pixi.js';
 import { addBackground } from './addBackground';
 import { addWitcher } from './addWitcher';
 import { Controller } from './Controller';
+import { GameConnection } from './service/game.service';
 
 // Create a Pixi Application
 const app = new Application();
@@ -67,6 +68,7 @@ const gameLoop = (witcher: Sprite, controller: Controller) => {
     addBackground(app);
     const witcher = addWitcher(app);
     const controller = new Controller();
+    const gameConnection = new GameConnection(controller);
 
     // Listen for frame updates
     app.ticker.add(() => {

@@ -3,11 +3,10 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" type="text/css" href="controller.css">
+    <link rel="stylesheet" type="text/css" href="remote_controller.css">
 </head>
 
 <body>
-    <script type="module" src="controller.ts"></script>
     <div class="controls">
         <div></div>
         <button class="control-btn" id="up"><img src="assets/up.svg" /></button>
@@ -16,6 +15,12 @@
         <button class="control-btn" id="down"><img src="assets/down.svg" /></button>
         <button class="control-btn" id="right"><img src="assets/right.svg" /></button>
     </div>
+
+    <script type="module" src="remote_controller.ts"></script>
+    <script type="module" src="service/remote_controller.service.ts"></script>
+    <script>
+        const connection = new RemoteControllerConnection();
+    </script>
 </body>
 
 </html>

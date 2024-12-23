@@ -1,9 +1,13 @@
+import { Controller } from "../Controller";
+
 export class GameConnection {
     private peerConnnection: RTCPeerConnection;
     private dataChannel: RTCDataChannel | null = null;
     private ws: WebSocket;
+    private remoteController: Controller | null = null;
 
-    constructor() {
+    constructor(existingController: Controller) {
+        this.remoteController = existingController;
         // connect to our signaling server
         this.ws = new WebSocket('ws://localhost:8080');
 
@@ -35,9 +39,13 @@ export class GameConnection {
 
         // what to do when we receive control messages
         this.dataChannel.onmessage = (event) => {
-            const controls = JSON.parse(event.data);
-            // this is where you'll handle the controller input
-            // for example, moving your game character
+            // parse the incoming control data
+            const controlData: string[] = JSON.parse(event.data);
+
+            // update the existing controller's state
+            if (this.remoteController) {
+                this.remoteController.updateFromRemote(controlData);
+            }
         }
 
         // handle new connection paths as we discover them

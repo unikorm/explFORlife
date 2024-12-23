@@ -1,3 +1,10 @@
+const remoteConnection = new RemoteControllerConnection();
+
+export type ControlState = {
+    type: 'controlUpdate';
+    activeControls: string[];
+}
+
 const buttons = document.querySelectorAll('.control-btn');
 const activeKeys = new Set();
 
@@ -50,8 +57,24 @@ document.addEventListener('contextmenu', (event) => {
     return false;
 });
 
-const sendControlState = () => {
+export const sendControlState = () => {
 
-    // after testing this will be replaced with webRTC implementation
-    console.log('Active controls:', Array.from(activeKeys));
+    const controlState: ControlState = {
+        type: 'controlUpdate',
+        activeControls: Array.from(activeKeys) as string[]
+    };
+
+    console.log('Control state to send:', controlState);
+
+    // this will be called by our RemoteControllerConnection when the connection is ready
+    if (window.webRTCSendControl) {
+        window.webRTCSendControl(controlState);
+    }
+}
+
+// we need to declare this for TypeScript
+declare global {
+    interface Window {
+        webRTCSendControl: (state: ControlState) => void;
+    }
 }

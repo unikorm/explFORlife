@@ -9,7 +9,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: '/index.html',
-        controller: '/src/remote_controller/controller.html'
+        controller: '/src/remote_controller/remote_controller.html'
       }
     }
   }
