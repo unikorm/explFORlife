@@ -6,9 +6,8 @@ export class RemoteControllerConnection {
     private ws: WebSocket;
 
     constructor() {
-        console.log('Initializing RemoteControllerConnection...');
 
-        this.ws = new WebSocket('ws://localhost:8000');
+        this.ws = new WebSocket('ws://localhost:8000'); // here will be IP address of the server (computer where server is running)
 
         this.ws.onerror = (error) => {
             console.error('WebSocket connection error:', error);

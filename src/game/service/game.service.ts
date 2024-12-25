@@ -8,7 +8,6 @@ export class GameConnection {
     private remoteController: Controller | null = null;
 
     constructor(existingController: Controller) {
-        // console.log('Initializing GameConnection...');
 
         this.remoteController = existingController;
         this.ws = new WebSocket('ws://localhost:8000');

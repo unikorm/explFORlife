@@ -11,19 +11,19 @@ const connections = new Map();
 
 // on listening event, log that server is running
 wss.on('listening', () => {
-    console.log(`WebSocket server is listening on port ${wss.options.port}`);
+    console.log(`\n(server.ts)\nWebSocket server is listening on port ${wss.options.port}`);
 });
 
 // on connection event, new client connected (every client has own ws object)
 wss.on("connection", (ws, request) => {
 
     const clientIP = request.socket.remoteAddress;
-    console.log(`\nNew client connected: ${clientIP}`);
+    console.log(`\n(server.ts)\nNew client connected: ${clientIP}`);
 
     // on message event, client send message
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
-        console.log('\nReceived message:');
+        console.log('\n(server.ts)\nReceived message:');
         console.log('Type:', data.type);
         console.log('From:', data.role || 'unknown');
         console.log('Content:', data);
@@ -50,7 +50,7 @@ wss.on("connection", (ws, request) => {
 
     // on error event, log error
     wss.on('error', (error) => {
-        console.error('WebSocket server error:', error);
+        console.error('\n(server.ts)\nWebSocket server error:', error);
     });
 
     // on close event, client disconnected
