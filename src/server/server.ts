@@ -25,7 +25,6 @@ wss.on("connection", (ws, request) => {
         const data = JSON.parse(message.toString());
         console.log('\n(server.ts)\nReceived message:');
         console.log('Type:', data.type);
-        console.log('From:', data.role || 'unknown');
         console.log('Content:', data);
 
         switch (data.type) {

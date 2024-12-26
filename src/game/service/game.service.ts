@@ -17,28 +17,28 @@ export class GameConnection {
             console.error('WebSocket connection error:', error);
         };
 
-        // this.peerConnection = new RTCPeerConnection({
-        //     iceServers: [
-        //         { urls: 'stun:stun.l.google.com:19302' },
-        //         { urls: 'stun:stun1.l.google.com:19302' },
-        //         { urls: 'stun:stun2.l.google.com:19302' },
-        //         { urls: 'stun:stun3.l.google.com:19302' },
-        //         { urls: 'stun:stun4.l.google.com:19302' }
-        //     ],
-        //     iceCandidatePoolSize: 10
-        // })
+        // creating RTCPeerConnection with STUN servers
+        this.peerConnection = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
+        })
 
-        // Log connection state changes
-        // this.peerConnection.onconnectionstatechange = () => {
-        //     console.log('WebRTC Connection State:', this.peerConnection.connectionState);
-        // };
+        this.peerConnection.onconnectionstatechange = () => {
+            console.log('WebRTC Connection State:', this.peerConnection.connectionState);
+        };
 
-        // this.peerConnection.oniceconnectionstatechange = () => {
-        //     console.log('ICE Connection State:', this.peerConnection.iceConnectionState);
-        // };
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE Connection State:', this.peerConnection.iceConnectionState);
+        };
 
         this.setupWebSocket();
-        // this.setupPeerConnection();
+        this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
@@ -49,68 +49,74 @@ export class GameConnection {
             // send message to server that this is game
             this.ws.send(JSON.stringify({ type: 'register', role: 'game' }))
 
-            // this.createOffer();
+            // create WebRTC offer
+            this.createOffer();
 
             // onmessage means that message is received
             this.ws.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
-                console.log('Received WebSocket message:', data.type);
+                console.log('Received WebSocket message:', data);
 
-                // if (data.type === 'answer') {
-                //     console.log('Received answer from controller');
-                //     try {
-                //         await this.peerConnection.setRemoteDescription(data.answer);
-                //         console.log('Successfully set remote description from answer');
-                //     } catch (error) {
-                //         console.error('Error setting remote description:', error);
-                //     }
-                // } else if (data.type === 'ice-candidate') {
-                //     console.log('Received ICE candidate from controller');
-                //     try {
-                //         await this.peerConnection.addIceCandidate(data.candidate);
-                //         console.log('Successfully added ICE candidate');
-                //     } catch (error) {
-                //         console.error('Error adding ICE candidate:', error);
-                //     }
-                // }
+                switch (data.type) {
+                    case 'answer':
+                        try {
+                            await this.peerConnection.setRemoteDescription(data.answer);
+                            console.log('Successfully set remote description from answer');
+                        } catch (error) {
+                            console.error('Error setting remote description:', error);
+                        }
+                        break;
+                    case 'ice-candidate':
+                        try {
+                            await this.peerConnection.addIceCandidate(data.candidate);
+                            console.log('Successfully added ICE candidate');
+                        } catch (error) {
+                            console.error('Error adding ICE candidate:', error);
+                        }
+                        break;
+                }
             }
         }
     }
 
-    // private setupPeerConnection = () => {
-    //     this.dataChannel = this.peerConnection.createDataChannel('controls');
+    private setupPeerConnection = () => {
 
-    //     this.dataChannel.onmessage = (event) => {
-    //         const controlData: ControlState = JSON.parse(event.data);
+        // offering peer creates data channel that is used for sending control updates
+        this.dataChannel = this.peerConnection.createDataChannel('controls');
+        console.log('Data channel created:', this.dataChannel);
 
-    //         if (this.remoteController && controlData.type === 'controlUpdate') {
-    //             this.remoteController.updateFromRemote(controlData.activeControls);
-    //         }
-    //     }
+        this.dataChannel.onmessage = (event) => {
+            const controlData: ControlState = JSON.parse(event.data);
 
-    //     this.peerConnection.onicecandidate = (event) => {
-    //         if (event.candidate) {
-    //             this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
+            if (this.remoteController && controlData.type === 'controlUpdate') {
+                this.remoteController.updateFromRemote(controlData.activeControls);
+            }
+        }
 
-    //         }
-    //     }
-    // }
+        // onicecandidate here are send through WS server to the other peer cause we don't have direct connection yet
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
 
-    // private createOffer = async () => {
-    //     console.log('Creating offer...');
-    //     try {
-    //         const offer = await this.peerConnection.createOffer();
-    //         console.log('Setting local description...');
-    //         await this.peerConnection.setLocalDescription(offer);
+            }
+        }
+    }
 
-    //         console.log('Sending offer to controller...');
-    //         this.ws.send(JSON.stringify({
-    //             type: 'offer',
-    //             target: 'controller',
-    //             offer
-    //         }));
-    //     } catch (error) {
-    //         console.error('Error creating offer:', error);
-    //     }
-    // }
+    private createOffer = async () => {
+
+        console.log('Creating offer...');
+
+        // create offer and set it as local description
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+
+        console.log('Sending offer to controller...');
+
+        // send offer to controller through WS server
+        this.ws.send(JSON.stringify({
+            type: 'offer',
+            target: 'controller',
+            offer
+        }));
+    }
 }

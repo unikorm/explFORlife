@@ -9,10 +9,12 @@ export class RemoteControllerConnection {
 
         this.ws = new WebSocket('ws://localhost:8000'); // here will be IP address of the server (computer where server is running)
 
+        // onerror means that connection has some error
         this.ws.onerror = (error) => {
             console.error('WebSocket connection error:', error);
         };
 
+        // creating RTCPeerConnection with STUN servers
         this.peerConnection = new RTCPeerConnection({
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -24,7 +26,6 @@ export class RemoteControllerConnection {
             iceCandidatePoolSize: 10
         });
 
-        // Log connection state changes
         this.peerConnection.onconnectionstatechange = () => {
             console.log('WebRTC Connection State:', this.peerConnection.connectionState);
         };
@@ -34,16 +35,20 @@ export class RemoteControllerConnection {
         };
 
         this.setupWebSocket();
-        // this.setupPeerConnection();
+        this.setupPeerConnection();
     }
 
     private setupWebSocket = () => {
 
+        // onopen means that connection is established
         this.ws.onopen = () => {
             console.log('WebSocket connected, registering as controller...');
+
+            // send message to server that this is controller
             this.ws.send(JSON.stringify({ type: 'register', role: 'controller' }));
         }
 
+        // onmessage means that message is received
         this.ws.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             console.log('Received WebSocket message:', data);
@@ -55,7 +60,6 @@ export class RemoteControllerConnection {
                     break;
 
                 case 'ice-candidate':
-                    console.log('Received ICE candidate from game');
                     try {
                         await this.peerConnection.addIceCandidate(data.candidate);
                         console.log('Successfully added ICE candidate');
@@ -67,53 +71,65 @@ export class RemoteControllerConnection {
         }
     }
 
-    // private setupPeerConnection = () => {
+    private setupPeerConnection = () => {
 
-    //     this.peerConnection.ondatachannel = (event) => {
+        // ondatachannel waits for data channel event from game
+        this.peerConnection.ondatachannel = (event) => {
 
-    //         this.dataChannel = event.channel;
+            // store recieved data channel
+            this.dataChannel = event.channel;
 
-    //         this.dataChannel.onopen = () => {
-    //             console.log('WebRTC connection established, controller ready to send');
+            // onopne means that connection is established and ready to send data
+            this.dataChannel.onopen = () => {
+                console.log('WebRTC connection established, controller ready to send');
+                console.log('Data channel state:', this.dataChannel?.readyState);
 
-    //             window.webRTCSendControl = (controlState: ControlState) => {
-    //                 if (this.dataChannel && this.dataChannel.readyState === 'open') {
-    //                     try {
-    //                         this.dataChannel.send(JSON.stringify(controlState));
-    //                     } catch (error) {
-    //                         console.error('Error sending control state:', error);
-    //                     }
-    //                 }
-    //             }
-    //         }
+                window.webRTCSendControl = (controlState: ControlState) => {
+                    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                        try {
+                            this.dataChannel.send(JSON.stringify(controlState));
+                        } catch (error) {
+                            console.error('Error sending control state:', error);
+                        }
+                    }
+                }
+            }
 
-    //         this.dataChannel.onerror = (error) => {
-    //             console.error('Data channel error:', error);
-    //         };
+            this.dataChannel.onerror = (error) => {
+                console.error('Data channel error:', error);
+            };
 
-    //         this.dataChannel.onclose = () => {
-    //             console.log('Data channel closed');
-    //             window.webRTCSendControl = () => {
-    //                 console.log('Connection lost, cannot send controls');
-    //             };
-    //         };
+            this.dataChannel.onclose = () => {
+                console.log('Data channel closed');
+                window.webRTCSendControl = () => {
+                    console.log('Connection lost, cannot send controls');
+                };
+            };
 
-    //     }
+        }
 
-    //     this.peerConnection.onicecandidate = (event) => {
-    //         if (event.candidate) {
-    //             this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
-    //         }
-    //     }
-    // }
+        // onicecandidate here are send through WS server to the other peer cause we don't have direct connection yet
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
+            }
+        }
+    }
 
     private handleOffer = async (offer: RTCSessionDescriptionInit) => {
-        await this.peerConnection.setRemoteDescription(offer);
 
+        console.log('Handling offer...');
+
+        // set remote description from offer and create answer
+        await this.peerConnection.setRemoteDescription(offer);
         const answer = await this.peerConnection.createAnswer();
 
+        // set local description as answer
         await this.peerConnection.setLocalDescription(answer);
 
+        console.log('Sending answer to game...');
+
+        // send answer to game through WS server
         this.ws.send(JSON.stringify({ type: 'answer', target: 'game', answer }));
     }
 }
