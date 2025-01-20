@@ -38,6 +38,7 @@ export class GameConnection {
                     localDescription: this.peerConnection.localDescription,
                     remoteDescription: this.peerConnection.remoteDescription
                 });
+                this.attemptReconnection();
             }
         };
 
@@ -98,7 +99,6 @@ export class GameConnection {
         this.dataChannel = this.peerConnection.createDataChannel('controls', {
             ordered: true,
             // Add these parameters for better real-time performance
-            maxRetransmits: 0,
             protocol: 'webrtc-datachannel',
             negotiated: false,
         });
@@ -118,6 +118,7 @@ export class GameConnection {
 
         this.dataChannel.onmessage = (event) => {
             const controlData: ControlState = JSON.parse(event.data);
+            console.log('Received control update:', controlData);
 
             if (this.remoteController && controlData.type === 'controlUpdate') {
                 this.remoteController.updateFromRemote(controlData.activeControls);
@@ -157,5 +158,12 @@ export class GameConnection {
             target: 'controller',
             offer
         }));
+    }
+
+    private attemptReconnection = () => {
+        if (this.peerConnection.connectionState === 'failed') {
+            console.log('Attempting to recover connection...');
+            this.peerConnection.restartIce();
+        }
     }
 }

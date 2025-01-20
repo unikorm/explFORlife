@@ -7,7 +7,7 @@ export class RemoteControllerConnection {
 
     constructor() {
 
-        this.ws = new WebSocket('ws://192.168.1.160:8080'); // here will be IP address of the server (computer where server is running)
+        this.ws = new WebSocket('ws://172.20.10.2:8080'); // here will be IP address of the server (computer where server is running)
 
         // onerror means that connection has some error
         this.ws.onerror = (error) => {
@@ -35,6 +35,7 @@ export class RemoteControllerConnection {
                     localDescription: this.peerConnection.localDescription,
                     remoteDescription: this.peerConnection.remoteDescription
                 });
+                this.attemptReconnection();
             }
         };
 
@@ -158,5 +159,12 @@ export class RemoteControllerConnection {
 
         // send answer to game through WS server
         this.ws.send(JSON.stringify({ type: 'answer', target: 'game', answer }));
+    }
+
+    private attemptReconnection = () => {
+        if (this.peerConnection.connectionState === 'failed') {
+            console.log('Attempting to recover connection...');
+            this.peerConnection.restartIce();
+        }
     }
 }
