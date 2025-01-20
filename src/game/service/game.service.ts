@@ -32,7 +32,7 @@ export class GameConnection {
             console.log('WebRTC Connection State:', this.peerConnection.connectionState);
 
             if (this.peerConnection.connectionState === 'failed') {
-                console.log('Connection Details:', {
+                console.log('Connection Details during FAIL:', {
                     iceGatheringState: this.peerConnection.iceGatheringState,
                     signalingState: this.peerConnection.signalingState,
                     localDescription: this.peerConnection.localDescription,
@@ -47,7 +47,7 @@ export class GameConnection {
             if (this.peerConnection.iceConnectionState === 'failed') {
                 // Log all current ICE candidates
                 const transceivers = this.peerConnection.getTransceivers();
-                console.log('Current transceivers:', transceivers);
+                console.log('Current transceivers on FAIL:', transceivers);
             }
         };
 

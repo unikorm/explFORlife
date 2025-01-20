@@ -29,7 +29,7 @@ export class RemoteControllerConnection {
             console.log('WebRTC Connection State:', this.peerConnection.connectionState);
 
             if (this.peerConnection.connectionState === 'failed') {
-                console.log('Connection Details:', {
+                console.log('Connection Details on FAIL:', {
                     iceGatheringState: this.peerConnection.iceGatheringState,
                     signalingState: this.peerConnection.signalingState,
                     localDescription: this.peerConnection.localDescription,
@@ -44,7 +44,7 @@ export class RemoteControllerConnection {
             if (this.peerConnection.iceConnectionState === 'failed') {
                 // Log all current ICE candidates
                 const transceivers = this.peerConnection.getTransceivers();
-                console.log('Current transceivers:', transceivers);
+                console.log('Current transceivers on FAIL:', transceivers);
             }
         };
 
@@ -70,7 +70,12 @@ export class RemoteControllerConnection {
             switch (data.type) {
                 case 'offer':
                     console.log('Received offer from game, processing...');
-                    await this.handleOffer(data.offer);
+                    try {
+                        await this.handleOffer(data.offer);
+                        console.log('Successfully handled offer');
+                    } catch (error) {
+                        console.error('Error handling offer:', error);
+                    }
                     break;
 
                 case 'ice-candidate':
@@ -97,11 +102,11 @@ export class RemoteControllerConnection {
             this.dataChannel.onopen = () => {
                 console.log('WebRTC connection established, controller ready to send');
                 console.log('Data channel state:', this.dataChannel?.readyState);
-                console.log('Data channel opened!', {
-                    state: this.dataChannel?.readyState,
-                    id: this.dataChannel?.id,
-                    bufferedAmount: this.dataChannel?.bufferedAmount
-                });
+                // console.log('Data channel opened!', {
+                //     state: this.dataChannel?.readyState,
+                //     id: this.dataChannel?.id,
+                //     bufferedAmount: this.dataChannel?.bufferedAmount
+                // });
 
                 window.webRTCSendControl = (controlState: ControlState) => {
                     if (this.dataChannel && this.dataChannel.readyState === 'open') {
