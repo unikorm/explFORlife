@@ -7,7 +7,7 @@ export class RemoteControllerConnection {
 
     constructor() {
 
-        this.ws = new WebSocket('ws://localhost:8000'); // here will be IP address of the server (computer where server is running)
+        this.ws = new WebSocket('ws://172.20.10.2:8080'); // here will be IP address of the server (computer where server is running)
 
         // onerror means that connection has some error
         this.ws.onerror = (error) => {
@@ -17,21 +17,35 @@ export class RemoteControllerConnection {
         // creating RTCPeerConnection with STUN servers
         this.peerConnection = new RTCPeerConnection({
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
+                { urls: 'stun:stun.l.google.com:19302' }
             ],
-            iceCandidatePoolSize: 10
+            iceTransportPolicy: 'all',
+            iceCandidatePoolSize: 10,
+            rtcpMuxPolicy: 'require',
+            bundlePolicy: 'max-bundle'
         });
 
         this.peerConnection.onconnectionstatechange = () => {
             console.log('WebRTC Connection State:', this.peerConnection.connectionState);
+
+            if (this.peerConnection.connectionState === 'failed') {
+                console.log('Connection Details on FAIL:', {
+                    iceGatheringState: this.peerConnection.iceGatheringState,
+                    signalingState: this.peerConnection.signalingState,
+                    localDescription: this.peerConnection.localDescription,
+                    remoteDescription: this.peerConnection.remoteDescription
+                });
+                this.attemptReconnection();
+            }
         };
 
         this.peerConnection.oniceconnectionstatechange = () => {
-            console.log('ICE Connection State:', this.peerConnection.iceConnectionState);
+            console.log('ICE Gathering State:', this.peerConnection.iceGatheringState);
+            if (this.peerConnection.iceConnectionState === 'failed') {
+                // Log all current ICE candidates
+                const transceivers = this.peerConnection.getTransceivers();
+                console.log('Current transceivers on FAIL:', transceivers);
+            }
         };
 
         this.setupWebSocket();
@@ -56,7 +70,12 @@ export class RemoteControllerConnection {
             switch (data.type) {
                 case 'offer':
                     console.log('Received offer from game, processing...');
-                    await this.handleOffer(data.offer);
+                    try {
+                        await this.handleOffer(data.offer);
+                        console.log('Successfully handled offer');
+                    } catch (error) {
+                        console.error('Error handling offer:', error);
+                    }
                     break;
 
                 case 'ice-candidate':
@@ -83,6 +102,11 @@ export class RemoteControllerConnection {
             this.dataChannel.onopen = () => {
                 console.log('WebRTC connection established, controller ready to send');
                 console.log('Data channel state:', this.dataChannel?.readyState);
+                // console.log('Data channel opened!', {
+                //     state: this.dataChannel?.readyState,
+                //     id: this.dataChannel?.id,
+                //     bufferedAmount: this.dataChannel?.bufferedAmount
+                // });
 
                 window.webRTCSendControl = (controlState: ControlState) => {
                     if (this.dataChannel && this.dataChannel.readyState === 'open') {
@@ -97,6 +121,7 @@ export class RemoteControllerConnection {
 
             this.dataChannel.onerror = (error) => {
                 console.error('Data channel error:', error);
+                console.log('Data channel state at error:', this.dataChannel?.readyState);
             };
 
             this.dataChannel.onclose = () => {
@@ -110,6 +135,14 @@ export class RemoteControllerConnection {
 
         // onicecandidate here are send through WS server to the other peer cause we don't have direct connection yet
         this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log('New ICE candidate:', {
+                    type: event.candidate.type,
+                    protocol: event.candidate.protocol,
+                    address: event.candidate.address,
+                    port: event.candidate.port
+                })
+            }
             if (event.candidate) {
                 this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
             }
@@ -131,5 +164,12 @@ export class RemoteControllerConnection {
 
         // send answer to game through WS server
         this.ws.send(JSON.stringify({ type: 'answer', target: 'game', answer }));
+    }
+
+    private attemptReconnection = () => {
+        if (this.peerConnection.connectionState === 'failed') {
+            console.log('Attempting to recover connection...');
+            this.peerConnection.restartIce();
+        }
     }
 }
