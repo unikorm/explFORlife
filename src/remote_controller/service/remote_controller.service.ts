@@ -6,7 +6,7 @@ export class RemoteControllerConnection {
     private ws: WebSocket;
 
     constructor() {
-        this.ws = new WebSocket('ws://172.20.10.2:8080');
+        this.ws = new WebSocket('ws://192.168.1.71:8080');
 
         this.peerConnection = new RTCPeerConnection({
             iceServers: [

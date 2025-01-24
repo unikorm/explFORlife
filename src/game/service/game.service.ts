@@ -56,10 +56,13 @@ export class GameConnection {
 
     private setupPeerConnection = () => {
 
-        this.dataChannel = this.peerConnection.createDataChannel('controls');
+        this.dataChannel = this.peerConnection.createDataChannel('controls', {
+            ordered: true
+        });
 
         this.dataChannel.onmessage = (event) => {
             const controlData: ControlState = JSON.parse(event.data);
+            console.log('Received control data:', controlData);
 
             if (this.remoteController && controlData.type === 'controlUpdate') {
                 this.remoteController.updateFromRemote(controlData.activeControls);
