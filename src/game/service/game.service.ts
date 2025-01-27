@@ -24,41 +24,54 @@ export class GameConnection {
 
     private setupWebSocket = () => {
         this.ws.onopen = () => {
-            console.log('WebSocket connected, registering as game...');
-
-            this.ws.send(JSON.stringify({ type: 'register', role: 'game' }))
+            console.log('WebSocket connection opened');
+            this.ws.send(JSON.stringify({ type: 'register', role: 'game' }));
             this.createOffer();
+        };
 
-            this.ws.onmessage = async (event) => {
-                const data = JSON.parse(event.data);
+        this.ws.onmessage = async (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received WebSocket message:', data);
 
-                switch (data.type) {
-                    case 'answer':
-                        try {
-                            await this.peerConnection.setRemoteDescription(data.answer);
-                            console.log('Successfully set remote description from answer');
-                        } catch (error) {
-                            console.error('Error setting remote description:', error);
-                        }
-                        break;
-                    case 'ice-candidate':
-                        try {
-                            await this.peerConnection.addIceCandidate(data.candidate);
-                            console.log('Successfully added ICE candidate');
-                        } catch (error) {
-                            console.error('Error adding ICE candidate:', error);
-                        }
-                        break;
-                }
+            switch (data.type) {
+                case 'answer':
+                    try {
+                        await this.peerConnection.setRemoteDescription(data.answer);
+                        console.log('Successfully set remote description from answer');
+                    } catch (error) {
+                        console.error('Error setting remote description:', error);
+                    }
+                    break;
+                case 'ice-candidate':
+                    try {
+                        await this.peerConnection.addIceCandidate(data.candidate);
+                        console.log('Successfully added ICE candidate');
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                    break;
             }
-        }
-    }
+        };
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        this.ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+    };
 
     private setupPeerConnection = () => {
 
-        this.dataChannel = this.peerConnection.createDataChannel('controls', {
-            ordered: true
-        });
+        this.dataChannel = this.peerConnection.createDataChannel('controls');
+
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
+
+            }
+        }
 
         this.dataChannel.onmessage = (event) => {
             const controlData: ControlState = JSON.parse(event.data);
@@ -66,15 +79,6 @@ export class GameConnection {
 
             if (this.remoteController && controlData.type === 'controlUpdate') {
                 this.remoteController.updateFromRemote(controlData.activeControls);
-            }
-        }
-
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-            }
-            if (event.candidate) {
-                this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'controller', candidate: event.candidate }));
-
             }
         }
 
@@ -89,6 +93,14 @@ export class GameConnection {
 
         this.dataChannel.onclose = () => {
             console.log('Data channel closed');
+        };
+
+        this.peerConnection.onconnectionstatechange = () => {
+            console.log('Peer connection state:', this.peerConnection.connectionState);
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', this.peerConnection.iceConnectionState);
         };
     }
 

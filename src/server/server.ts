@@ -11,6 +11,7 @@ wss.on("connection", (ws, request) => {
     const clientIP = request.socket.remoteAddress;
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
+        console.log('Received message:', data);
 
         switch (data.type) {
             case 'register':
@@ -27,23 +28,21 @@ wss.on("connection", (ws, request) => {
                 break;
 
         }
-    })
-
-
-    // logging
-    wss.on('listening', () => {
-        console.log(`WebSocket server is listening on port ${wss.options.port}`);
-    });
-
-    wss.on('error', (error) => {
-        console.error('WebSocket server error:', error);
     });
 
     ws.on("close", () => {
         console.log(`Client disconnected: ${clientIP}`);
         connections.forEach((value, key) => {
             if (value === ws) connections.delete(key);
-        })
+        });
         console.log('Remaining connections:', Array.from(connections.keys()));
-    })
-})
+    });
+});
+
+wss.on('listening', () => {
+    console.log(`WebSocket server is listening on port ${wss.options.port}`);
+});
+
+wss.on('error', (error) => {
+    console.error('WebSocket server error:', error);
+});

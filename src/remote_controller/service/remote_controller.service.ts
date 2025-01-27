@@ -6,7 +6,7 @@ export class RemoteControllerConnection {
     private ws: WebSocket;
 
     constructor() {
-        this.ws = new WebSocket('ws://192.168.1.71:8080');
+        this.ws = new WebSocket('ws://172.20.10.2:8080');
 
         this.peerConnection = new RTCPeerConnection({
             iceServers: [
@@ -20,8 +20,7 @@ export class RemoteControllerConnection {
 
     private setupWebSocket = () => {
         this.ws.onopen = () => {
-            console.log('WebSocket connected, registering as controller...');
-
+            console.log('WebSocket connection opened');
             this.ws.send(JSON.stringify({ type: 'register', role: 'controller' }));
         }
 
@@ -49,6 +48,14 @@ export class RemoteControllerConnection {
                     break;
             }
         }
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        this.ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
     }
 
     private setupPeerConnection = () => {
@@ -92,6 +99,14 @@ export class RemoteControllerConnection {
                 this.ws.send(JSON.stringify({ type: 'ice-candidate', target: 'game', candidate: event.candidate }));
             }
         }
+
+        this.peerConnection.onconnectionstatechange = () => {
+            console.log('Peer connection state:', this.peerConnection.connectionState);
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', this.peerConnection.iceConnectionState);
+        };
     }
 
     private handleOffer = async (offer: RTCSessionDescriptionInit) => {
