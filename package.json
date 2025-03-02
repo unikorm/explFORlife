@@ -1,6 +1,8 @@
 {
-    "name": "witcher",
+    "name": "explFORlife",
     "version": "0.6.9",
+    "description": "A simple top-down forest exploration game",
+    "main": "index.html",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
@@ -9,12 +11,11 @@
     "devDependencies": {
         "nodemon": "^3.1.9",
         "typescript": "~5.5.2",
-        "vite": "^6.0.5"
+        "vite": "^6.0.5",
+        "ws": "^8.18.0"
     },
     "dependencies": {
         "@types/ws": "^8.5.13",
-        "pixi.js": "8.6.4",
-        "ts-node": "^10.9.2",
-        "ws": "^8.18.0"
+        "simplex-noise": "^4.0.3"
     }
 }

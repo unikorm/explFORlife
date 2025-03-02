@@ -1,78 +1,67 @@
-import { Application, Assets, Sprite } from 'pixi.js';
-import { addBackground } from './addBackground';
-import { addWitcher } from './addWitcher';
-import { Controller } from './Controller';
-import { GameConnection } from './service/game.service';
 
-// Create a Pixi Application
-const app = new Application();
-const MOVE_SPEED = 3;
+// src/game/main.ts
 
-const setup = async () => {
+import { World } from './World';
+import { Player } from './Player';
+import { GameRenderer } from './Renderer';
 
-    // Intialize the application.
-    await app.init({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        backgroundColor: 0x99BB10,
-        resizeTo: window
-    })
+// Game parameters
+const WORLD_WIDTH = 40;  // Width of the world in cells
+const WORLD_HEIGHT = 30; // Height of the world in cells
+const CELL_SIZE = 20;    // Size of each cell in pixels
 
-    // Then adding the application's canvas to the DOM body.
-    document.body.appendChild(app.canvas);
-}
+// Initialize the game when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Get the canvas element
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-const preload = async () => {
+    // Set canvas size to match our world size
+    canvas.width = WORLD_WIDTH * CELL_SIZE;
+    canvas.height = WORLD_HEIGHT * CELL_SIZE;
 
-    // Load the assets
-    await Assets.load([{ alias: 'background', src: '/assets/background.png' }, { alias: 'witcher', src: '/assets/witcher.png' }]);
-}
+    // Create the world and generate terrain
+    const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
+    world.generateTerrain();
 
-const gameLoop = (witcher: Sprite, controller: Controller) => {
-    let dx = 0;
-    let dy = 0;
+    // Create the player at a valid starting position
+    const startPosition = world.findValidStartPosition();
+    const player = new Player(startPosition);
 
-    // calculate direction
-    if (controller.isMovingRight()) dx += 1;
-    if (controller.isMovingLeft()) dx -= 1;
-    if (controller.isMovingUp()) dy -= 1;
-    if (controller.isMovingDown()) dy += 1;
+    // Create the renderer
+    const renderer = new GameRenderer(canvas, CELL_SIZE);
 
-    // Normalize diagonal movement
-    if (dx !== 0 && dy !== 0) {
-        const factor = 1 / Math.sqrt(2);
-        dx *= factor;
-        dy *= factor;
-    }
+    // Set up keyboard controls
+    document.addEventListener('keydown', (event) => {
+        let moved = false;
 
-    //apply movement
-    witcher.x += dx * MOVE_SPEED;
-    witcher.y += dy * MOVE_SPEED;
+        // Handle arrow keys and WASD
+        switch (event.key) {
+            case 'ArrowUp':
+            case 'w':
+                moved = player.move('up', world);
+                break;
+            case 'ArrowDown':
+            case 's':
+                moved = player.move('down', world);
+                break;
+            case 'ArrowLeft':
+            case 'a':
+                moved = player.move('left', world);
+                break;
+            case 'ArrowRight':
+            case 'd':
+                moved = player.move('right', world);
+                break;
+        }
 
-    // apply bounds
-    const bounds = {
-        left: witcher.width / 2,
-        right: app.screen.width - witcher.width / 2,
-        top: witcher.height / 2,
-        bottom: app.screen.height - witcher.height / 2
-    }
-
-    witcher.x = Math.max(bounds.left, Math.min(witcher.x, bounds.right));
-    witcher.y = Math.max(bounds.top, Math.min(witcher.y, bounds.bottom));
-}
-
-(async () => {
-    await setup();
-    await preload();
-
-    addBackground(app);
-    const witcher = addWitcher(app);
-    const controller = new Controller();
-    const gameConnection = new GameConnection(controller);
-
-    // Listen for frame updates
-    app.ticker.add(() => {
-        gameLoop(witcher, controller);
+        // If the player moved, re-render the game
+        if (moved) {
+            renderer.render(world, player);
+        }
     });
-})();
 
+    // Initial render
+    renderer.render(world, player);
+
+    console.log('Game initialized!');
+});
