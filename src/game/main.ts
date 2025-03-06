@@ -1,6 +1,4 @@
 
-// src/game/main.ts
-
 import { World } from './World';
 import { Player } from './Player';
 import { GameRenderer } from './Renderer';
@@ -18,6 +16,24 @@ const resizeCanvas = (canvas: HTMLCanvasElement) => {
     WORLD_HEIGHT = Math.ceil(canvas.height / CELL_SIZE);
     WORLD_WIDTH = Math.ceil(canvas.width / CELL_SIZE);
     console.log(WORLD_WIDTH, WORLD_HEIGHT);
+
+    render();
+
+}
+
+function render() {
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+    
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Render the world
+    world.render(ctx, CELL_SIZE);
+    
+    // Other rendering code can go here (players, entities, etc.)
 }
 
 // Initialize the game when the page loads
@@ -25,12 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get the canvas element
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-    resizeCanvas(canvas); 
+    resizeCanvas(canvas);
 
     window.addEventListener('resize', () => resizeCanvas(canvas));
 
     // Create the world and generate terrain
-    // const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
+    const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
     // world.generateTerrain();
 
     // Create the player at a valid starting position
@@ -38,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // const player = new Player(startPosition);
 
     // Create the renderer
-    // const renderer = new GameRenderer(canvas, CELL_SIZE);
+    const renderer = new GameRenderer(canvas, CELL_SIZE);
+    renderer.render(world);
 
     // Set up keyboard controls
     // document.addEventListener('keydown', (event) => {

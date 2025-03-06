@@ -6,5 +6,5 @@ html, body {
 
 #gameCanvas {
     display: block;
-    background-color: brown;
+    background-color: rgba(105, 41, 41, 0.826);
 }

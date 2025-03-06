@@ -17,7 +17,7 @@ export class GameRenderer {
     }
 
     // Render the world and player
-    render(world: World, player: Player): void {
+    render(world: World): void {
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -33,7 +33,7 @@ export class GameRenderer {
                         color = '#4287f5'; // Blue
                         break;
                     case TerrainType.GRASS:
-                        color = '#42f54b'; // Green
+                        this.ctx.fillStyle = '#2ecc71'; // Green
                         break;
                     case TerrainType.TREE:
                         color = '#0f5511'; // Dark green
@@ -43,7 +43,6 @@ export class GameRenderer {
                 }
 
                 // Draw the cell
-                this.ctx.fillStyle = color;
                 this.ctx.fillRect(
                     x * this.cellSize,
                     y * this.cellSize,
@@ -53,16 +52,16 @@ export class GameRenderer {
             }
         }
 
-        // Draw the player
-        this.ctx.fillStyle = '#ff0000'; // Red
-        this.ctx.beginPath();
-        this.ctx.arc(
-            player.x * this.cellSize + this.cellSize / 2,
-            player.y * this.cellSize + this.cellSize / 2,
-            this.cellSize / 2,
-            0,
-            Math.PI * 2
-        );
-        this.ctx.fill();
+        // // Draw the player
+        // this.ctx.fillStyle = '#ff0000'; // Red
+        // this.ctx.beginPath();
+        // this.ctx.arc(
+        //     player.x * this.cellSize + this.cellSize / 2,
+        //     player.y * this.cellSize + this.cellSize / 2,
+        //     this.cellSize / 2,
+        //     0,
+        //     Math.PI * 2
+        // );
+        // this.ctx.fill();
     }
 }
