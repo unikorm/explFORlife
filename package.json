@@ -1,5 +1,5 @@
 {
-    "name": "explFORlife",
+    "name": "explforlife",
     "version": "0.6.9",
     "description": "A simple top-down forest exploration game",
     "main": "index.html",
@@ -12,10 +12,10 @@
         "nodemon": "^3.1.9",
         "typescript": "~5.5.2",
         "vite": "^6.0.5",
-        "ws": "^8.18.0"
+        "@types/ws": "^8.5.13"
     },
     "dependencies": {
-        "@types/ws": "^8.5.13",
+        "ws": "^8.18.0",
         "simplex-noise": "^4.0.3"
     }
 }
