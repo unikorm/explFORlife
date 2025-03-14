@@ -18,6 +18,7 @@ export class World {
             for (let x = 0; x < width; x++) {
                 row.push(new Cell(x, y, TerrainType.GRASS));
             }
+            // use preallocated 2D array here
             this.grid.push(row);
         }
     }

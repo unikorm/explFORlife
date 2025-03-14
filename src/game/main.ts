@@ -6,7 +6,7 @@ import { GameRenderer } from './Renderer';
 // Game parameters
 let WORLD_WIDTH: number;
 let WORLD_HEIGHT: number;
-const CELL_SIZE = 30;    // Size of each cell in pixels
+const CELL_SIZE = 6;    // Size of each cell in pixels
 
 // function to resize game canvas to match the window size
 const resizeCanvas = (canvas: HTMLCanvasElement) => {
@@ -17,21 +17,21 @@ const resizeCanvas = (canvas: HTMLCanvasElement) => {
     WORLD_WIDTH = Math.ceil(canvas.width / CELL_SIZE);
     console.log(WORLD_WIDTH, WORLD_HEIGHT);
 
-    render();
+    render(canvas);
 
 }
 
-function render() {
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) return;
-    
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+const render = (canvas: HTMLCanvasElement) => {
+    // const canvas: HTMLCanvasElement = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    // const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    // if (!ctx) return;
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Render the world
-    world.render(ctx, CELL_SIZE);
+    const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
+    // Create the renderer
+    const renderer = new GameRenderer(canvas, CELL_SIZE);
+    renderer.render(world);
     
     // Other rendering code can go here (players, entities, etc.)
 }
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => resizeCanvas(canvas));
 
     // Create the world and generate terrain
-    const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
+    // const world = new World(WORLD_WIDTH, WORLD_HEIGHT);
     // world.generateTerrain();
 
     // Create the player at a valid starting position
@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // const player = new Player(startPosition);
 
     // Create the renderer
-    const renderer = new GameRenderer(canvas, CELL_SIZE);
-    renderer.render(world);
+    // const renderer = new GameRenderer(canvas, CELL_SIZE);
+    // renderer.render(world);
 
     // Set up keyboard controls
     // document.addEventListener('keydown', (event) => {

@@ -10,7 +10,7 @@ export class GameRenderer {
     ctx: CanvasRenderingContext2D;
     cellSize: number; // Size of each cell in pixels
 
-    constructor(canvas: HTMLCanvasElement, cellSize: number = 20) {
+    constructor(canvas: HTMLCanvasElement, cellSize: number = 6) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.cellSize = cellSize;
@@ -33,7 +33,7 @@ export class GameRenderer {
                         color = '#4287f5'; // Blue
                         break;
                     case TerrainType.GRASS:
-                        this.ctx.fillStyle = '#2ecc71'; // Green
+                        this.ctx.fillStyle = '#706238'; // Green
                         break;
                     case TerrainType.TREE:
                         color = '#0f5511'; // Dark green
@@ -46,8 +46,8 @@ export class GameRenderer {
                 this.ctx.fillRect(
                     x * this.cellSize,
                     y * this.cellSize,
-                    this.cellSize,
-                    this.cellSize
+                    this.cellSize - .04,
+                    this.cellSize - .04
                 );
             }
         }
