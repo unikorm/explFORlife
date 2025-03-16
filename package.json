@@ -9,13 +9,14 @@
         "start:server": "nodemon --exec ts-node src/server/server.ts"
     },
     "devDependencies": {
+        "@types/ws": "^8.5.13",
         "nodemon": "^3.1.9",
         "typescript": "~5.5.2",
-        "vite": "^6.0.5",
-        "@types/ws": "^8.5.13"
+        "vite": "^6.0.5"
     },
     "dependencies": {
-        "ws": "^8.18.0",
-        "simplex-noise": "^4.0.3"
+        "alea": "^1.0.1",
+        "simplex-noise": "^4.0.3",
+        "ws": "^8.18.0"
     }
 }

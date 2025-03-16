@@ -2,7 +2,9 @@
 export enum TerrainType {
     WATER,
     GRASS,
-    TREE
+    TREE,
+    MOUNTAIN,
+    DEEP_WATER
 }
 
 export class Cell {

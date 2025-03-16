@@ -5,7 +5,7 @@ import { GameRenderer } from './Renderer';
 
 let WORLD_WIDTH: number;
 let WORLD_HEIGHT: number;
-const CELL_SIZE = 4;
+const CELL_SIZE = 3;
 
 // on DOM load render canvas
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,7 @@
 
 import { Cell, TerrainType } from './Cell';
 import { createNoise2D } from 'simplex-noise';
+import alea from 'alea';
 
 export class World {
     grid: Cell[][];
@@ -12,10 +13,13 @@ export class World {
         this.height = height;
         this.grid = [];
 
-        const noise2D = createNoise2D();
-        const scale = 0.01;
-        const waterThreshold = -0.5;
-        const treeThreshold = 0.2;
+        const noise2D = createNoise2D(alea('ada'));
+        console.log(noise2D(0, 0));
+        const scale = 0.009;
+        const waterThreshold = -0.4;
+        const deepWaterThreshold = -0.6;
+        const treeThreshold = 0.4;
+        const mountainThreshold = 0.7;
 
         // Initialize grid with cells based on noise
         for (let y = 0; y < height; y++) {
@@ -24,10 +28,14 @@ export class World {
                 const noiseValue = noise2D(x * scale, y * scale);
 
                 let terrainType: TerrainType;
-                if (noiseValue < waterThreshold) {
-                    terrainType = TerrainType.WATER;
+                if (noiseValue < deepWaterThreshold) {
+                    terrainType = TerrainType.DEEP_WATER;
+                } else if (noiseValue > mountainThreshold) {
+                    terrainType = TerrainType.MOUNTAIN;
                 } else if (noiseValue > treeThreshold) {
                     terrainType = TerrainType.TREE;
+                } else if (noiseValue < waterThreshold) {
+                    terrainType = TerrainType.WATER;
                 } else {
                     terrainType = TerrainType.GRASS;
                 }

@@ -10,7 +10,7 @@ export class GameRenderer {
     ctx: CanvasRenderingContext2D;
     cellSize: number;
 
-    constructor(canvas: HTMLCanvasElement, cellSize: number = 6) {
+    constructor(canvas: HTMLCanvasElement, cellSize: number = 3) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.cellSize = cellSize;
@@ -25,13 +25,19 @@ export class GameRenderer {
 
                 switch (cell.terrainType) {
                     case TerrainType.WATER:
-                        this.ctx.fillStyle  = '#4287f5'; // Blue
+                        this.ctx.fillStyle = '#4287f5'; // Blue
                         break;
                     case TerrainType.GRASS:
                         this.ctx.fillStyle = '#706238'; // Green
                         break;
                     case TerrainType.TREE:
-                        this.ctx.fillStyle  = '#0f5511'; // Dark green
+                        this.ctx.fillStyle = '#0f5511'; // Dark green
+                        break;
+                    case TerrainType.MOUNTAIN:
+                        this.ctx.fillStyle = '#a0a0a0'; // Gray
+                        break;
+                    case TerrainType.DEEP_WATER:
+                        this.ctx.fillStyle = '#1a3f7f'; // Dark blue
                         break;
                     default:
                         this.ctx.fillStyle = '#000000'; // Black (should never happen)
@@ -40,8 +46,8 @@ export class GameRenderer {
                 this.ctx.fillRect(
                     x * this.cellSize,
                     y * this.cellSize,
-                    this.cellSize - .04,
-                    this.cellSize - .04
+                    this.cellSize - .02,
+                    this.cellSize - .02
                 );
             }
         }
