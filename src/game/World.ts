@@ -16,10 +16,10 @@ export class World {
         const noise2D = createNoise2D(alea('ada'));
         console.log(noise2D(0, 0));
         const scale = 0.009;
-        const waterThreshold = -0.4;
-        const deepWaterThreshold = -0.6;
-        const treeThreshold = 0.4;
-        const mountainThreshold = 0.7;
+        const waterThreshold = -0.5;
+        const deepWaterThreshold = -0.74;
+        const treeThreshold = 0.2;
+        const mountainThreshold = 0.65;
 
         // Initialize grid with cells based on noise
         for (let y = 0; y < height; y++) {
